@@ -1,7 +1,7 @@
 import {Species} from "./species";
 import {Direction} from "./direction";
 import {PIXEL_COLOURS, PositionedPixel} from "./pixel";
-import {getRandomInt} from "./util";
+import {getRandomInt, weightedRandom} from "./util";
 import {Position} from "./position";
 
 export class Organism {
@@ -48,7 +48,7 @@ export class Organism {
 
             // TODO handle mutations
             return new Organism(
-                this.species,
+                this.species.mutate(),
                 this.position,
                 this.food
             );
@@ -109,22 +109,4 @@ export class Organism {
         canvasCtx.fillStyle = "white";
         canvasCtx.fillText(fullness, 0, 0);
     }
-}
-
-function weightedRandom<T>(inputs: [number, T][]): T {
-    inputs = inputs.map(input => [Math.max(input[0], 0), input[1]]);
-
-    const total = inputs.reduce((acc, cur) => acc + cur[0], 0);
-
-    let randomInt = getRandomInt(total);
-    for (const input of inputs) {
-        if (randomInt <= input[0]) {
-            return input[1];
-        }
-
-        randomInt -= input[0];
-    }
-
-    console.error("Should never reach here");
-    return inputs[0][1];
 }

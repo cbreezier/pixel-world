@@ -1,4 +1,5 @@
 import {Position} from "./position";
+import {getRandomIntBetween, weightedRandom} from "./util";
 
 export class Pixel {
     public readonly red: number;
@@ -52,6 +53,26 @@ export class Pixel {
         canvasCtx.fillStyle = `rgb(${this.red}, ${this.green}, ${this.blue})`;
         canvasCtx.fillRect(0, 0, pixelSize, pixelSize);
     }
+
+    mutate(): Pixel {
+        return weightedRandom([
+            [80, this.mutateIntensity],
+            [20, this.mutateSwapColours]
+        ])();
+    }
+
+    private mutateIntensity(): Pixel {
+        return weightedRandom([
+            [1, () => new Pixel(this.red + getRandomIntBetween(-50, 50), this.green, this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.green + getRandomIntBetween(-50, 50), this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.green, this.blue + getRandomIntBetween(-50, 50), this.alive)]
+        ])();
+    }
+
+    private mutateSwapColours(): Pixel {
+        // TODO implement this
+        return this;
+    }
 }
 
 export class PositionedPixel {
@@ -62,18 +83,11 @@ export class PositionedPixel {
         this.position = position;
         this.pixel = pixel;
     }
-}/*
-class PixelColour {
-    public static RED = new PixelColour("red");
-    public static GREEN = new PixelColour("red");
-    public static BLUE = new PixelColour("red");
 
-    public readonly colourName: string;
-
-    constructor(colourName: string) {
-        this.colourName = colourName;
+    mutate(): PositionedPixel {
+        return new PositionedPixel(this.position, this.pixel.mutate());
     }
 }
-*/
+
 export type PixelColour = "red" | "green" | "blue";
 export const PIXEL_COLOURS: PixelColour[] = ["red", "green", "blue"];

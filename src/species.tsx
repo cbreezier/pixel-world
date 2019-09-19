@@ -2,12 +2,13 @@ import {Pixel, PixelColour, PositionedPixel} from "./pixel";
 import {Behaviour} from "./behaviour";
 import {Position} from "./position";
 import {Direction} from "./direction";
+import {getRandomInt, weightedRandom} from "./util";
 
 export class Species {
 
+    public readonly generation: number;
     public readonly parent: Species | null;
     public readonly pixels: PositionedPixel[];
-    //public readonly behaviours: {PixelColour: {string: Behaviour}};
     public readonly behaviours: Record<PixelColour, Record<string, Behaviour>>;
 
     static fromPixel(initialPixel: Pixel) {
@@ -15,6 +16,11 @@ export class Species {
     }
 
     constructor(parent: Species | null, pixels: PositionedPixel[], behaviours?) {
+        if (parent === null) {
+            this.generation = 0;
+        } else {
+            this.generation = parent.generation + 1;
+        }
         this.parent = parent;
         this.pixels = pixels;
         if (behaviours) {
@@ -43,7 +49,7 @@ export class Species {
         }
     }
 
-    getMass() {
+    getMass(): number {
         return this.pixels
             .map(p => p.pixel.getMass())
             .reduce((acc, cur) => acc + cur, 0);
@@ -51,5 +57,37 @@ export class Species {
 
     getBehaviour(pixelColour: PixelColour, direction: Direction): Behaviour {
         return this.behaviours[pixelColour][direction.name];
+    }
+
+    mutate(): Species {
+        // 5% chance to mutate
+        if (Math.random() < 0.05) {
+            return weightedRandom([
+                [80, this.mutateBehaviour],
+                [20, this.mutateExistingPixels],
+                [5, this.mutateNumberOfPixels]
+            ])();
+        } else {
+            return this;
+        }
+    }
+
+    mutateBehaviour(): Species {
+        // TODO implement this
+        return this;
+    }
+
+    mutateExistingPixels(): Species {
+        const newSpecies = new Species(this, this.pixels, this.behaviours);
+        const index = getRandomInt(newSpecies.pixels.length - 1);
+        const newPixel = newSpecies.pixels[index].mutate();
+        newSpecies.pixels[index] = newPixel;
+
+        return newSpecies;
+    }
+
+    mutateNumberOfPixels(): Species {
+        // TODO implement this
+        return this;
     }
 }
