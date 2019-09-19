@@ -143,7 +143,7 @@ class AppState {
     private removeOrganism(organism: Organism): void {
         this.organisms.compute(
             organism.getPosition(),
-            cur => cur.filter(o => o.id !== organism.id),
+            cur => cur.filter(o => o !== organism),
             () => {
                 throw new Error('Cannot find organism at its position');
             }
