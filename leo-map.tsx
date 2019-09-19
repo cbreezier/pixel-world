@@ -83,6 +83,20 @@ export class LeoMap<K extends Keyable, V> implements Map<K, V> {
 
         return curValue;
     }
+
+    compute(key: K, ifPresent: (cur: V) => V, ifAbsent: () => V): V {
+        const curValue = this.valueMap.get(key.toKey());
+
+        if (curValue) {
+            const newValue = ifPresent(curValue);
+            this.set(key, newValue);
+            return newValue;
+        } else {
+            const newValue = ifAbsent();
+            this.set(key, newValue);
+            return newValue;
+        }
+    }
 }
 
 export interface Keyable {

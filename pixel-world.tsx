@@ -33,13 +33,17 @@ class AppState {
 
         for (let i = 0; i < n; i++) {
             const position = randomPosition(this.width, this.height);
-            let organisms = this.organisms.putIfAbsent(position, []);
-            organisms.push(new Organism(
+            const newOrganism = new Organism(
                 initialSpecies,
                 randomPosition(this.width, this.height),
                 Math.floor(initialSpecies.getMass() / 5)
-            ));
-            this.organisms.set(position, organisms); // TODO necessary?
+            );
+
+            this.organisms.compute(
+                position,
+                cur => [...cur, newOrganism],
+                () => [newOrganism]
+            );
         }
 
         console.log(`Added ${n} organisms`);
@@ -98,6 +102,13 @@ class AppState {
                 newOrganisms.push(newOrganism);
             }
         });
+
+        // Add all the newly born organisms
+        newOrganisms.forEach(organism => this.organisms.compute(
+            organism.getPosition(),
+            cur => [...cur, organism],
+            () => [organism]
+        ));
     }
 
     render() {
