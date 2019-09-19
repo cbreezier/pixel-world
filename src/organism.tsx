@@ -42,6 +42,7 @@ export class Organism {
         if (this.food > this.species.getMass()) {
             this.food /= 2;
 
+            // TODO handle mutations
             return new Organism(
                 this.species,
                 this.position,
