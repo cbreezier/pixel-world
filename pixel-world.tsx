@@ -8,6 +8,7 @@ import {getRandomInt} from "./src/util";
 class AppState {
     private organisms: LeoMap<Position, Organism[]>;
     private foods: LeoMap<Position, Pixel>;
+    private time: number;
 
     public readonly width: number;
     public readonly height: number;
@@ -20,6 +21,7 @@ class AppState {
     constructor(width: number, height: number, canvasId: string) {
         this.organisms = new LeoMap();
         this.foods = new LeoMap();
+        this.time = 0;
 
         this.width = width;
         this.height = height;
@@ -111,6 +113,13 @@ class AppState {
                 this.addOrganism(newOrganism);
             }
         });
+
+        // Periodically sow more food
+        if (this.time % 600 === 0) {
+            this.addFood(500, "green");
+        }
+
+        this.time++;
     }
 
     render() {
@@ -175,10 +184,10 @@ function randomPosition(width: number, height: number) {
 
 const appState = new AppState(400, 200, 'world');
 appState.addOrganisms(10);
-appState.addFood(1000, "green");
+appState.addFood(5000, "green");
 console.log(appState);
 
 setInterval(() => {
     appState.update();
     appState.render();
-}, 100);
+}, 50);
