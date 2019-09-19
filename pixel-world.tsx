@@ -37,18 +37,13 @@ class AppState {
         const initialSpecies = Species.fromPixel(new Pixel(180, 0, 0, true));
 
         for (let i = 0; i < n; i++) {
-            const position = randomPosition(this.width, this.height);
             const newOrganism = new Organism(
                 initialSpecies,
                 randomPosition(this.width, this.height),
                 Math.floor(initialSpecies.getMass() / 5)
             );
 
-            this.organisms.compute(
-                position,
-                cur => [...cur, newOrganism],
-                () => [newOrganism]
-            );
+            this.addOrganism(newOrganism);
         }
 
         console.log(`Added ${n} organisms`);
@@ -77,11 +72,20 @@ class AppState {
     }
 
     update() {
-        const newOrganisms: Organism[] = [];
-
         [...this.organisms.values()].flat().forEach(organism => {
+            if (organism.getFood() < 0) {
+                // Dead, so turn it into food
+                this.removeOrganism(organism);
+                this.turnIntoFood(organism);
+                return;
+            }
+
             // TODO give organisms visibility of their surroundings
+            // TODO make this less error prone
+            this.removeOrganism(organism);
             organism.move([]);
+            this.addOrganism(organism);
+
             organism.getAbsoluteCellPositions().forEach(organismPosition => {
                 const food = this.foods.get(organismPosition.position);
                 if (!food) {
@@ -104,16 +108,9 @@ class AppState {
             // Potentially reproduce
             const newOrganism = organism.tryReproduce();
             if (newOrganism) {
-                newOrganisms.push(newOrganism);
+                this.addOrganism(newOrganism);
             }
         });
-
-        // Add all the newly born organisms
-        newOrganisms.forEach(organism => this.organisms.compute(
-            organism.getPosition(),
-            cur => [...cur, organism],
-            () => [organism]
-        ));
     }
 
     render() {
@@ -142,6 +139,30 @@ class AppState {
             this.canvasCtx.restore();
         });
     }
+
+    private removeOrganism(organism: Organism): void {
+        this.organisms.compute(
+            organism.getPosition(),
+            cur => cur.filter(o => o.id !== organism.id),
+            () => {
+                throw new Error('Cannot find organism at its position');
+            }
+        );
+    }
+
+    private addOrganism(organism: Organism): void {
+        this.organisms.compute(
+            organism.getPosition(),
+            cur => [...cur, organism],
+            () => [organism]
+        );
+    }
+
+    private turnIntoFood(organism: Organism): void {
+        organism.getAbsoluteCellPositions().forEach(pp => {
+            this.foods.set(pp.position, pp.pixel);
+        });
+    }
 }
 
 function wrapPosition(position: Position, width: number, height: number) {
@@ -154,7 +175,7 @@ function randomPosition(width: number, height: number) {
 
 const appState = new AppState(400, 200, 'world');
 appState.addOrganisms(10);
-appState.addFood(5000, "green");
+appState.addFood(1000, "green");
 console.log(appState);
 
 setInterval(() => {
