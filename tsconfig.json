@@ -1,10 +1,13 @@
 {
-  "compilerOptions": 
-  {
+  "compilerOptions": {
+    "jsx": "react",
+    "alwaysStrict": true,
+    "strictNullChecks": true,
     "sourceMap": true,
     "target": "es6",
     "lib": [
       "dom",
+      "es6",
       "es2019"
     ]
   }

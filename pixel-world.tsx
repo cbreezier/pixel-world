@@ -1,8 +1,8 @@
-console.log("tsx working");
+import {Keyable, LeoMap} from './leo-map';
 
 class AppState {
-    private organisms: Map<Position, Organism[]>;
-    private foods: Map<Position, Pixel>;
+    private organisms: LeoMap<Position, Organism[]>;
+    private foods: LeoMap<Position, Pixel>;
 
     public readonly width: number;
     public readonly height: number;
@@ -13,15 +13,15 @@ class AppState {
     private readonly pixelSize: number;
 
     constructor(width: number, height: number, canvasId: string) {
-        this.organisms = new Map();
-        this.foods = new Map();
+        this.organisms = new LeoMap();
+        this.foods = new LeoMap();
 
         this.width = width;
         this.height = height;
 
         this.canvasId = canvasId;
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-        this.canvasCtx = this.canvas.getContext('2d');
+        this.canvasCtx = this.canvas.getContext('2d')!;
         this.pixelSize = Math.min(
             this.canvas.width / this.width,
             this.canvas.height / this.height
@@ -33,10 +33,7 @@ class AppState {
 
         for (let i = 0; i < n; i++) {
             const position = randomPosition(this.width, this.height);
-            if (this.organisms.get(position) === undefined) {
-                this.organisms.set(position, []);
-            }
-            let organisms = this.organisms.get(position);
+            let organisms = this.organisms.putIfAbsent(position, []);
             organisms.push(new Organism(
                 initialSpecies,
                 randomPosition(this.width, this.height),
@@ -71,29 +68,35 @@ class AppState {
     }
 
     update() {
+        const newOrganisms: Organism[] = [];
+
         [...this.organisms.values()].flat().forEach(organism => {
             // TODO give organisms visibility of their surroundings
             organism.move([]);
             organism.getAbsoluteCellPositions().forEach(organismPosition => {
-                // TODO this is completely broken because js is fucking stupid and uses reference equality for key comparisons
                 const food = this.foods.get(organismPosition.position);
                 if (!food) {
                     return;
                 }
 
-                const foodValue = food.getIntensity(food.getPrimaryColour());
-
-                console.log("Trying to eat food", food, foodValue);
-
-                console.log("Primary colour", food.getPrimaryColour());
+                const foodColour = food.getPrimaryColour();
+                const foodValue = food.getIntensity(foodColour);
                 const predatorColour = Pixel.getPredator(food.getPrimaryColour());
-                if (organismPosition.pixel.getIntensity(predatorColour) > foodValue) {
+                const predatorValue = organismPosition.pixel.getIntensity(predatorColour);
+
+                if (predatorValue > foodValue) {
                     // Eat it!
                     organism.addFood(foodValue);
                     this.foods.delete(organismPosition.position);
                 }
                 // TODO calculate pixels eating other pixels
             });
+
+            // Potentially reproduce
+            const newOrganism = organism.tryReproduce();
+            if (newOrganism) {
+                newOrganisms.push(newOrganism);
+            }
         });
     }
 
@@ -165,7 +168,20 @@ class Organism {
 
     addFood(food: number) {
         this.food += food;
-        // TODO reproduce?
+    }
+
+    tryReproduce(): Organism | null {
+        if (this.food > this.species.getMass()) {
+            this.food /= 2;
+
+            return new Organism(
+                this.species,
+                this.position,
+                this.food
+            );
+        } else {
+            return null;
+        }
     }
 
     // Pixels here are relatively positioned
@@ -244,13 +260,17 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-class Position {
+class Position implements Keyable {
     public readonly x: number;
     public readonly y: number;
 
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
+    }
+
+    toKey(): string {
+        return `{x:${this.x},y: ${this.y}}`;
     }
 
     plusDirection(direction: Direction) {
@@ -278,7 +298,7 @@ class Position {
 
 class Species {
 
-    public readonly parent?: Species;
+    public readonly parent: Species | null;
     public readonly pixels: PositionedPixel[];
     //public readonly behaviours: {PixelColour: {string: Behaviour}};
     public readonly behaviours: Record<PixelColour, Record<string, Behaviour>>;
@@ -287,7 +307,7 @@ class Species {
         return new Species(null, [new PositionedPixel(new Position(0, 0), initialPixel)]);
     }
 
-    constructor(parent: Species, pixels: PositionedPixel[], behaviours?) {
+    constructor(parent: Species | null, pixels: PositionedPixel[], behaviours?) {
         this.parent = parent;
         this.pixels = pixels;
         if (behaviours) {
@@ -372,7 +392,7 @@ class Pixel {
             ["red", this.red] as [PixelColour, number],
             ["green", this.green] as [PixelColour, number],
             ["blue", this.blue] as [PixelColour, number]
-        ].sort((a, b) => a[1] - b[1])[0][0]
+        ].sort((a, b) => a[1] - b[1]).reverse()[0][0]
     }
 
     render(canvasCtx: CanvasRenderingContext2D, pixelSize: number) {
