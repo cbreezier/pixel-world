@@ -63,9 +63,9 @@ export class Species {
         // 5% chance to mutate
         if (Math.random() < 0.05) {
             return weightedRandom([
-                [80, this.mutateBehaviour],
-                [20, this.mutateExistingPixels],
-                [5, this.mutateNumberOfPixels]
+                [80, this.mutateBehaviour.bind(this)],
+                [20, this.mutateExistingPixels.bind(this)],
+                [5, this.mutateNumberOfPixels.bind(this)]
             ])();
         } else {
             return this;
@@ -78,7 +78,8 @@ export class Species {
     }
 
     mutateExistingPixels(): Species {
-        const newSpecies = new Species(this, this.pixels, this.behaviours);
+        // TODO check deep copying of behaviours
+        const newSpecies = new Species(this, [...this.pixels], this.behaviours);
         const index = getRandomInt(newSpecies.pixels.length - 1);
         const newPixel = newSpecies.pixels[index].mutate();
         newSpecies.pixels[index] = newPixel;

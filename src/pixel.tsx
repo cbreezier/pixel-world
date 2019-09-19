@@ -56,8 +56,8 @@ export class Pixel {
 
     mutate(): Pixel {
         return weightedRandom([
-            [80, this.mutateIntensity],
-            [20, this.mutateSwapColours]
+            [80, this.mutateIntensity.bind(this)],
+            [20, this.mutateSwapColours.bind(this)]
         ])();
     }
 

@@ -46,7 +46,6 @@ export class Organism {
         if (this.food > this.species.getMass()) {
             this.food /= 2;
 
-            // TODO handle mutations
             return new Organism(
                 this.species.mutate(),
                 this.position,
@@ -92,7 +91,7 @@ export class Organism {
         // Modify state!
         this.previousDirection = finalDirection;
         this.position = this.position.plusDirection(finalDirection);
-        this.food -= this.species.getMass() * 0.0001;
+        this.food -= this.species.getMass() * 0.005;
     }
 
     render(canvasCtx: CanvasRenderingContext2D, pixelSize: number) {
