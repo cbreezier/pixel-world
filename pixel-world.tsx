@@ -8,6 +8,7 @@ import {getRandomInt} from "./src/util";
 class AppState {
     private organisms: LeoMap<Position, Organism[]>;
     private foods: LeoMap<Position, Pixel>;
+    private species: {species: Species, count: number}[];
     private time: number;
 
     public readonly width: number;
@@ -21,6 +22,7 @@ class AppState {
     constructor(width: number, height: number, canvasId: string) {
         this.organisms = new LeoMap();
         this.foods = new LeoMap();
+        this.species = [];
         this.time = 0;
 
         this.width = width;
@@ -35,6 +37,7 @@ class AppState {
         );
     }
 
+    // TODO testing method only
     addOrganisms(n: number) {
         const initialSpecies = Species.fromPixel(new Pixel(180, 0, 0, true));
 
@@ -47,6 +50,11 @@ class AppState {
 
             this.addOrganism(newOrganism);
         }
+
+        this.species.push({
+            species: initialSpecies,
+            count: n
+        });
 
         console.log(`Added ${n} organisms`);
     }
@@ -79,6 +87,7 @@ class AppState {
                 // Dead, so turn it into food
                 this.removeOrganism(organism);
                 this.turnIntoFood(organism);
+                this.removeSpecies(organism.species);
                 return;
             }
 
@@ -111,6 +120,7 @@ class AppState {
             const newOrganism = organism.tryReproduce();
             if (newOrganism) {
                 this.addOrganism(newOrganism);
+                this.addSpecies(newOrganism.species);
             }
         });
 
@@ -171,6 +181,29 @@ class AppState {
         organism.getAbsoluteCellPositions().forEach(pp => {
             this.foods.set(pp.position, pp.pixel);
         });
+    }
+
+    private addSpecies(species: Species): void {
+        const existingSpecies = this.species.find(cur => cur.species === species);
+        if (existingSpecies === undefined) {
+            this.species.push({
+                species: species,
+                count: 1
+            });
+        } else {
+            existingSpecies.count++;
+        }
+        this.species.sort((a, b) => b.count - a.count);
+    }
+
+    private removeSpecies(species: Species): void {
+        const existingSpecies = this.species.find(cur => cur.species === species);
+        if (existingSpecies === undefined) {
+            throw new Error('No species left to remove!');
+        } else {
+            existingSpecies.count--;
+        }
+        this.species.sort((a, b) => b.count - a.count);
     }
 }
 
