@@ -32,8 +32,8 @@ class AppState {
         this.height = height;
         this.config = {
             tickIntervalMs: 50,
-            paused: true,
-            renderFullnessPercent: true
+            paused: false,
+            renderFullnessPercent: false
         };
 
         this.canvasId = canvasId;
