@@ -63,9 +63,9 @@ export class Pixel {
 
     private mutateIntensity(): Pixel {
         return weightedRandom([
-            [1, () => new Pixel(this.mutateIntensityNumber(this.red, 50), this.green, this.blue, this.alive)],
-            [1, () => new Pixel(this.red, this.mutateIntensityNumber(this.green, 50), this.blue, this.alive)],
-            [1, () => new Pixel(this.red, this.green, this.mutateIntensityNumber(this.blue, 50), this.alive)]
+            [1, () => new Pixel(this.mutateIntensityNumber(this.red, 20), this.green, this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.mutateIntensityNumber(this.green, 20), this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.green, this.mutateIntensityNumber(this.blue, 20), this.alive)]
         ])();
     }
 
@@ -77,8 +77,22 @@ export class Pixel {
     }
 
     private mutateSwapColours(): Pixel {
-        // TODO implement this
-        return this;
+        const curColours = [this.red, this.green, this.blue];
+        shuffleArray(curColours);
+
+        return new Pixel(curColours[0], curColours[1], curColours[2], this.alive);
+    }
+}
+
+/**
+ * Durstenfeld shuffle: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+ *
+ * Mutates input
+ */
+function shuffleArray<T>(array: T[]): void {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
 }
 

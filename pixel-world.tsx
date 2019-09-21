@@ -54,7 +54,7 @@ class AppState {
 
     // TODO testing method only
     addOrganisms(n: number) {
-        const initialSpecies = Species.fromPixel(new Pixel(180, 0, 0, true));
+        const initialSpecies = Species.fromPixel(new Pixel(100, 0, 0, true));
 
         for (let i = 0; i < n; i++) {
             const newOrganism = new Organism(
@@ -76,11 +76,11 @@ class AppState {
         let blue = 0;
 
         if (colour === "red") {
-            red = 50;
+            red = 30;
         } else if (colour === "green") {
-            green = 50;
+            green = 30;
         } else if (colour === "blue") {
-            blue = 50;
+            blue = 30;
         }
 
         for (let i = 0; i < n; i++) {
