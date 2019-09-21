@@ -98,11 +98,13 @@ export class Organism {
         this.food -= this.species.getMass() * 0.005;
     }
 
-    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number) {
+    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number, textRgb: boolean = false) {
         this.species.render(canvasCtx, pixelSize);
 
-        const fullness = this.getFullnessPercent().toFixed(0) + '%';
-        canvasCtx.fillStyle = "white";
-        canvasCtx.fillText(fullness, 0, 0);
+        if (textRgb) {
+            const fullness = this.getFullnessPercent().toFixed(0) + '%';
+            canvasCtx.fillStyle = "white";
+            canvasCtx.fillText(fullness, 0, 0);
+        }
     }
 }

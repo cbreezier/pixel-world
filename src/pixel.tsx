@@ -49,9 +49,13 @@ export class Pixel {
         ].sort((a, b) => a[1] - b[1]).reverse()[0][0]
     }
 
-    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number) {
+    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number, textRgb: boolean = false) {
         canvasCtx.fillStyle = `rgb(${this.red}, ${this.green}, ${this.blue})`;
         canvasCtx.fillRect(0, 0, pixelSize, pixelSize);
+        if (textRgb) {
+            canvasCtx.fillStyle = 'white';
+            canvasCtx.fillText(`rgb(${this.red}, ${this.green}, ${this.blue})`, 0, 0);
+        }
     }
 
     mutate(): Pixel {

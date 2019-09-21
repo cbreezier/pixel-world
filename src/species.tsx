@@ -58,12 +58,12 @@ export class Species {
         return this.behaviours[pixelColour][direction.name];
     }
 
-    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number) {
+    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number, textRgb: boolean = false) {
         this.pixels.forEach(pixel => {
             canvasCtx.save();
             canvasCtx.translate(pixel.position.x * pixelSize, pixel.position.y * pixelSize);
 
-            pixel.pixel.render(canvasCtx, pixelSize);
+            pixel.pixel.render(canvasCtx, pixelSize, textRgb);
 
             canvasCtx.restore();
         });

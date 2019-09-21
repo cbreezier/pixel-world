@@ -15,7 +15,7 @@ class AppState {
 
     public readonly width: number;
     public readonly height: number;
-    public readonly config: {tickIntervalMs: number, paused: boolean};
+    public readonly config: {tickIntervalMs: number, paused: boolean, renderFullnessPercent: boolean};
 
     private readonly canvasId: string;
     private readonly canvas: HTMLCanvasElement;
@@ -32,7 +32,8 @@ class AppState {
         this.height = height;
         this.config = {
             tickIntervalMs: 50,
-            paused: true
+            paused: true,
+            renderFullnessPercent: true
         };
 
         this.canvasId = canvasId;
@@ -156,7 +157,7 @@ class AppState {
             this.canvasCtx.save();
             this.canvasCtx.translate(position.x * this.pixelSize, position.y * this.pixelSize);
 
-            organism.render(this.canvasCtx, this.pixelSize);
+            organism.render(this.canvasCtx, this.pixelSize, this.config.renderFullnessPercent);
 
             this.canvasCtx.restore();
         });
@@ -213,7 +214,7 @@ function randomPosition(width: number, height: number) {
 function renderTopSpecie(speciesInfo: {species: Species, count: number}, order: number): string {
     let result: string = '';
     result += `<div id="species${order}" style="border: 1px solid blue; margin: 5px;">`;
-    result += `<canvas id="species-canvas${order}" width="100" height="100" style="border: 1px solid black; display: inline-block"></canvas>`;
+    result += `<canvas id="species-canvas${order}" width="100" height="100" style="background-color: black; display: inline-block"></canvas>`;
 
     result += `<div style="display: inline-block; margin: 5px;">`;
     result += `Generation: ${speciesInfo.species.generation}<br>`;
@@ -256,14 +257,16 @@ function renderTopSpecies(divId: string, appState: AppState) {
 
         canvasCtx.save();
         canvasCtx.translate(2 * pixelSize, 2 * pixelSize);
-        speciesInfo.species.render(canvasCtx, pixelSize);
+        speciesInfo.species.render(canvasCtx, pixelSize, true);
         canvasCtx.restore();
     }
 }
 
 const appState = new AppState(400, 200, 'world');
 appState.addOrganisms(10);
-appState.addFood(5000, "green");
+appState.addFood(1500, "red");
+appState.addFood(1500, "green");
+appState.addFood(1500, "blue");
 console.log(appState);
 
 function setTickIntervalMs() {
@@ -277,7 +280,12 @@ function togglePause() {
     appState.config.paused = !appState.config.paused;
 }
 
+function toggleRenderFullnessPercent() {
+    appState.config.renderFullnessPercent = !appState.config.renderFullnessPercent;
+}
+
 document.getElementById ("toggle-pause")!.addEventListener("click", togglePause, false);
+document.getElementById ("toggle-render-fullness-percent")!.addEventListener("click", toggleRenderFullnessPercent, false);
 document.getElementById ("interval-control")!.addEventListener("change", setTickIntervalMs, false);
 
 function updateLoop() {
