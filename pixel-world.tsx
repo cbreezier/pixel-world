@@ -15,7 +15,7 @@ class AppState {
 
     public readonly width: number;
     public readonly height: number;
-    public readonly config: {tickIntervalMs: number, paused: boolean, renderFullnessPercent: boolean};
+    public readonly config: {tickIntervalMs: number, paused: boolean, renderFullnessPercent: boolean, renderWorld: boolean, renderTopSpecies: boolean};
 
     private readonly canvasId: string;
     private readonly canvas: HTMLCanvasElement;
@@ -33,7 +33,9 @@ class AppState {
         this.config = {
             tickIntervalMs: 50,
             paused: false,
-            renderFullnessPercent: false
+            renderFullnessPercent: false,
+            renderWorld: true,
+            renderTopSpecies: true
         };
 
         this.canvasId = canvasId;
@@ -302,15 +304,29 @@ function toggleRenderFullnessPercent() {
     appState.config.renderFullnessPercent = !appState.config.renderFullnessPercent;
 }
 
+function toggleRenderWorld() {
+    appState.config.renderWorld = !appState.config.renderWorld;
+}
+
+function toggleRenderTopSpecies() {
+    appState.config.renderTopSpecies = !appState.config.renderTopSpecies;
+}
+
 document.getElementById ("toggle-pause")!.addEventListener("click", togglePause, false);
 document.getElementById ("toggle-render-fullness-percent")!.addEventListener("click", toggleRenderFullnessPercent, false);
+document.getElementById ("toggle-render-world")!.addEventListener("click", toggleRenderWorld, false);
+document.getElementById ("toggle-render-top-species")!.addEventListener("click", toggleRenderTopSpecies, false);
 document.getElementById ("interval-control")!.addEventListener("change", setTickIntervalMs, false);
 
 function updateLoop() {
     if (!appState.config.paused) {
         appState.update();
-        appState.render();
-        renderTopSpecies('top-species', appState);
+        if (appState.config.renderWorld) {
+            appState.render();
+        }
+        if (appState.config.renderTopSpecies) {
+            renderTopSpecies('top-species', appState);
+        }
         document.getElementById('time')!.innerText = appState.getTime().toLocaleString();
     }
 
