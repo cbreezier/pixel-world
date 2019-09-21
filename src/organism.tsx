@@ -3,9 +3,12 @@ import {Direction} from "./direction";
 import {PIXEL_COLOURS, PositionedPixel} from "./pixel";
 import {getRandomInt, weightedRandom} from "./util";
 import {Position} from "./position";
+import {Uuid} from "./uuid";
+import {Keyable} from "./keyable";
 
-export class Organism {
+export class Organism implements Keyable {
     public readonly species: Species;
+    public readonly id: Uuid;
 
     private position: Position;
     private food: number;
@@ -13,9 +16,15 @@ export class Organism {
 
     constructor(species: Species, position: Position, food: number) {
         this.species = species;
+        this.id = new Uuid();
+
         this.position = position;
         this.food = food;
         this.previousDirection = Direction.NONE;
+    }
+
+    toKey(): string {
+        return this.id.stringValue;
     }
 
     getPosition(): Position {

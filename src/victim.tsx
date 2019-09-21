@@ -12,7 +12,11 @@ export class Victim implements Keyable {
     }
 
     toKey(): string {
-        return this.pixel.toKey();
+        let key = this.pixel.toKey();
+        if (this.organism !== undefined) {
+            key += this.organism.toKey();
+        }
+        return key;
     }
 
     isAlive() {

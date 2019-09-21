@@ -1,7 +1,6 @@
 import {LeoMap} from "./leo-map";
 import {Victim} from "./victim";
 import {Position} from "./position";
-import {Pixel} from "./pixel";
 import {Organism} from "./organism";
 
 export class VictimMap {
@@ -50,10 +49,6 @@ export class VictimMap {
         );
     }
 
-    removeVictimByPixel(position: Position, pixel: Pixel) {
-        this.removeVictim(position, new Victim(pixel));
-    }
-
     addVictim(position: Position, victim: Victim) {
         this.victims.compute(
             position,
@@ -74,7 +69,7 @@ export class VictimMap {
 
     removeOrganism(organism: Organism): void {
         organism.getAbsoluteCellPositions().forEach(cell => {
-            this.removeVictimByPixel(cell.position, cell.pixel);
+            this.removeVictim(cell.position, new Victim(cell.pixel, organism));
         });
     }
 

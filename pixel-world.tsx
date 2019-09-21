@@ -1,4 +1,3 @@
-import {LeoMap} from './src/leo-map';
 import {Position} from "./src/position";
 import {Pixel, PIXEL_COLOURS, PixelColour} from "./src/pixel";
 import {Species} from "./src/species";
@@ -212,9 +211,7 @@ class AppState {
 
     private removeOrganism(organism: Organism): void {
         this.organisms.delete(organism);
-        organism.getAbsoluteCellPositions().forEach(cell => {
-            this.victimMap.removeVictimByPixel(cell.position, cell.pixel);
-        });
+        this.victimMap.removeOrganism(organism);
     }
 
     private addOrganism(organism: Organism): void {
