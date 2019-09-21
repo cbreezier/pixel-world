@@ -1,5 +1,5 @@
 import {Position} from "./position";
-import {getRandomIntBetween, weightedRandom} from "./util";
+import {enforceBetween, getRandomIntBetween, weightedRandom} from "./util";
 
 export class Pixel {
     public readonly red: number;
@@ -63,10 +63,17 @@ export class Pixel {
 
     private mutateIntensity(): Pixel {
         return weightedRandom([
-            [1, () => new Pixel(this.red + getRandomIntBetween(-50, 50), this.green, this.blue, this.alive)],
-            [1, () => new Pixel(this.red, this.green + getRandomIntBetween(-50, 50), this.blue, this.alive)],
-            [1, () => new Pixel(this.red, this.green, this.blue + getRandomIntBetween(-50, 50), this.alive)]
+            [1, () => new Pixel(this.mutateIntensityNumber(this.red, 50), this.green, this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.mutateIntensityNumber(this.green, 50), this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.green, this.mutateIntensityNumber(this.blue, 50), this.alive)]
         ])();
+    }
+
+    private mutateIntensityNumber(original: number, fluctuation: number) {
+        return enforceBetween(
+            original + getRandomIntBetween(-fluctuation, fluctuation),
+            1, 255
+        );
     }
 
     private mutateSwapColours(): Pixel {

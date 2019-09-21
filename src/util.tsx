@@ -23,3 +23,7 @@ export function weightedRandom<T>(inputs: [number, T][]): T {
     console.error("Should never reach here");
     return inputs[0][1];
 }
+
+export function enforceBetween(n: number, min: number, max: number) {
+    return Math.max(Math.min(n, max), min);
+}
