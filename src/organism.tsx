@@ -63,13 +63,13 @@ export class Organism {
     // Pixels here are relatively positioned
     move(pixels: PositionedPixel[]): void {
         let attraction = {
-            "up": 10,
-            "right": 10,
-            "down": 10,
-            "left": 10
+            "up": 1,
+            "right": 1,
+            "down": 1,
+            "left": 1
         };
 
-        attraction[this.previousDirection.name] += 50;
+        attraction[this.previousDirection.name] += 5;
 
         for (const pixel of pixels) {
             for (const direction of Direction.DIRS) {
