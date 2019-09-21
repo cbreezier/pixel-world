@@ -106,6 +106,7 @@ class AppState {
             // TODO make this less error prone
             this.removeOrganism(organism);
             organism.move([]);
+            organism.setPosition(wrapPosition(organism.getPosition(), this.width, this.height));
             this.addOrganism(organism);
 
             organism.getAbsoluteCellPositions().forEach(organismPosition => {
@@ -196,7 +197,11 @@ class AppState {
 }
 
 function wrapPosition(position: Position, width: number, height: number) {
-    return new Position(position.x % width, position.y % height);
+    if (position.x < 0 || position.x > width || position.y < 0 || position.y > height) {
+        return new Position((position.x + width) % width, (position.y + height) % height);
+    } else {
+        return position;
+    }
 }
 
 function randomPosition(width: number, height: number) {

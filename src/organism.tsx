@@ -22,6 +22,10 @@ export class Organism {
         return this.position;
     }
 
+    setPosition(position: Position) {
+        this.position = position;
+    }
+
     getFood(): number {
         return this.food;
     }
@@ -65,7 +69,7 @@ export class Organism {
             "left": 10
         };
 
-        attraction[this.previousDirection.name] += 5;
+        attraction[this.previousDirection.name] += 15;
 
         for (const pixel of pixels) {
             for (const direction of Direction.DIRS) {
