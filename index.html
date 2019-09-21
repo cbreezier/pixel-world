@@ -6,8 +6,13 @@
   <body>
     <h1>Pixel World</h1>
     <div class="main">
-      <canvas id="world" width="1200" height="600" style="border: 1px solid black; background-color: black;"></canvas>
-      <div id="top-species" style="display: inline-block; width:300px; height:600px; border: 1px solid red;"></div>
+      <canvas id="world" width="1200" height="600" style="border: 1px solid black; background-color: black; display: inline-block;"></canvas>
+      <div id="top-species" style="display: inline-block; width:300px; height:600px; float: right; border: 1px solid red;"></div>
+    </div>
+    <div class="controls">
+      <span>Time: <span id="time"</span></span>
+      <button id="toggle-pause">Play/Pause</button>
+      <input id="interval-control" name="Loop Speed" type="range" min="0" max="1000">
     </div>
     <script src="./pixel-world.tsx"></script>
   </body>

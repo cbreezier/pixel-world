@@ -14,7 +14,7 @@ class AppState {
 
     public readonly width: number;
     public readonly height: number;
-    public readonly config: {tickIntervalMs: number};
+    public readonly config: {tickIntervalMs: number, paused: boolean};
 
     private readonly canvasId: string;
     private readonly canvas: HTMLCanvasElement;
@@ -30,7 +30,8 @@ class AppState {
         this.width = width;
         this.height = height;
         this.config = {
-            tickIntervalMs: 50
+            tickIntervalMs: 50,
+            paused: true
         };
 
         this.canvasId = canvasId;
@@ -44,6 +45,10 @@ class AppState {
 
     getTopSpecies(n: number) {
         return this.topSpecies.getTopSpecies(n);
+    }
+
+    getTime() {
+        return this.time;
     }
 
     // TODO testing method only
@@ -199,11 +204,13 @@ function randomPosition(width: number, height: number) {
 
 function renderTopSpecie(speciesInfo: {species: Species, count: number}, order: number): string {
     let result: string = '';
-    result += `<div id="species${order}" style="border: 1px solid blue;">`;
+    result += `<div id="species${order}" style="border: 1px solid blue; margin: 5px;">`;
     result += `<canvas id="species-canvas${order}" width="100" height="100" style="border: 1px solid black; display: inline-block"></canvas>`;
+    result += `<div style="display: inline-block; margin: 5px;">`;
     result += `Generation: ${speciesInfo.species.generation}<br>`;
     result += `Count: ${speciesInfo.count}<br>`;
     result += `Mass: ${speciesInfo.species.getMass()}<br>`;
+    result += `</div>`;
     result += `</div>`;
 
     return result;
@@ -238,10 +245,27 @@ appState.addOrganisms(10);
 appState.addFood(5000, "green");
 console.log(appState);
 
+function setTickIntervalMs() {
+    const intervalControlInputElement = document.getElementById('interval-control')! as HTMLInputElement
+    const newInterval = parseInt(intervalControlInputElement.value);
+    console.log('newInterval', newInterval);
+    appState.config.tickIntervalMs = newInterval;
+}
+
+function togglePause() {
+    appState.config.paused = !appState.config.paused;
+}
+
+document.getElementById ("toggle-pause")!.addEventListener("click", togglePause, false);
+document.getElementById ("interval-control")!.addEventListener("change", setTickIntervalMs, false);
+
 function updateLoop() {
-    appState.update();
-    appState.render();
-    renderTopSpecies('top-species', appState);
+    if (!appState.config.paused) {
+        appState.update();
+        appState.render();
+        renderTopSpecies('top-species', appState);
+        document.getElementById('time')!.innerText = appState.getTime().toLocaleString();
+    }
 
     setTimeout(updateLoop, appState.config.tickIntervalMs);
 }
