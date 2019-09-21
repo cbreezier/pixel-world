@@ -2,7 +2,7 @@ import {Pixel} from "./pixel";
 import {Organism} from "./organism";
 import {Keyable} from "./keyable";
 
-export class Victim implements  Keyable {
+export class Victim implements Keyable {
     public readonly pixel: Pixel;
     public readonly organism?: Organism;
 

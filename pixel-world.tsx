@@ -7,10 +7,11 @@ import {getRandomInt} from "./src/util";
 import {TopSpecies} from "./src/top-species";
 import {Direction} from "./src/direction";
 import {Victim} from "./src/victim";
+import {VictimMap} from "./src/victim-map";
 
 class AppState {
     private organisms: Set<Organism>;
-    private victims: LeoMap<Position, LeoMap<Victim, number>>;
+    private victimMap: VictimMap;
     private topSpecies: TopSpecies;
     private time: number;
 
@@ -25,7 +26,7 @@ class AppState {
 
     constructor(width: number, height: number, canvasId: string) {
         this.organisms = new Set();
-        this.victims = new LeoMap();
+        this.victimMap = new VictimMap();
         this.topSpecies = new TopSpecies();
         this.time = 0;
 
@@ -103,7 +104,7 @@ class AppState {
             const victim = new Victim(
                 new Pixel(red, green, blue, false)
             );
-            this.addVictim(position, victim);
+            this.victimMap.addVictim(position, victim);
         }
     }
 
@@ -117,7 +118,7 @@ class AppState {
             if (organism.getFood() < 0) {
                 // Dead, so turn it into food
                 this.removeOrganism(organism);
-                this.turnIntoFood(organism);
+                this.victimMap.turnIntoFood(organism);
                 this.topSpecies.removeSpecies(organism.species);
                 return;
             }
@@ -130,7 +131,7 @@ class AppState {
             this.addOrganism(organism);
 
             organism.getAbsoluteCellPositions().forEach(organismPosition => {
-                const victims = this.victims.get(organismPosition.position);
+                const victims = this.victimMap.getVictim(organismPosition.position);
                 if (!victims) {
                     return;
                 }
@@ -151,7 +152,7 @@ class AppState {
                                 console.log("Ate another organism!", organismPosition.position, victim.pixel.toKey());
                                 this.removeOrganism(victim.organism);
                             } else {
-                                this.removeVictim(organismPosition.position, victim);
+                                this.victimMap.removeVictim(organismPosition.position, victim);
                             }
                         }
                     }
@@ -198,9 +199,7 @@ class AppState {
             this.canvasCtx.restore();
         });
 
-        this.victims.forEach((victimSet, position) => {
-            // const position = wrapPosition(food.position, this.width, this.height);
-
+        this.victimMap.forEach((victimSet, position) => {
             this.canvasCtx.save();
             this.canvasCtx.translate(position.x * this.pixelSize, position.y * this.pixelSize);
 
@@ -214,74 +213,13 @@ class AppState {
     private removeOrganism(organism: Organism): void {
         this.organisms.delete(organism);
         organism.getAbsoluteCellPositions().forEach(cell => {
-            this.removeVictimByPixel(cell.position, cell.pixel);
+            this.victimMap.removeVictimByPixel(cell.position, cell.pixel);
         });
     }
 
     private addOrganism(organism: Organism): void {
         this.organisms.add(organism);
-        organism.getAbsoluteCellPositions().forEach(cell => {
-            this.addVictim(cell.position, new Victim(cell.pixel, organism));
-        });
-    }
-
-    private removeVictim(position: Position, victim: Victim) {
-        this.victims.compute(
-            position,
-            victimMap => {
-                victimMap.compute(
-                    victim,
-                    curNum => {
-                        curNum--;
-                        if (curNum === 0) {
-                            return undefined;
-                        } else {
-                            return curNum;
-                        }
-                    },
-                    () => {
-                        throw new Error('Trying to remove non-existent victim: ' + victim.pixel.toKey());
-                    }
-                );
-
-                if (victimMap.size == 0) {
-                    return undefined;
-                } else {
-                    return victimMap;
-                }
-            },
-            () => {
-                throw new Error('Trying to remove non-existent victim: ' + victim.pixel.toKey());
-            }
-        );
-    }
-
-    private removeVictimByPixel(position: Position, pixel: Pixel) {
-        this.removeVictim(position, new Victim(pixel));
-    }
-
-    private addVictim(position: Position, victim: Victim) {
-        this.victims.compute(
-            position,
-            victimMap => {
-                victimMap.compute(
-                    victim,
-                    curNum => curNum + 1,
-                    () => 1
-                );
-
-                return victimMap;
-            },
-            () => {
-                return new LeoMap<Victim, number>().set(victim, 1);
-            }
-        );
-    }
-
-    private turnIntoFood(organism: Organism): void {
-        organism.getAbsoluteCellPositions().forEach(pp => {
-            this.addVictim(pp.position, new Victim(pp.pixel));
-        });
+        this.victimMap.addOrganism(organism);
     }
 }
 
