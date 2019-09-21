@@ -69,21 +69,28 @@ export class Species {
         });
     }
 
+    // TODO fix generation counting - currently can increase by 1 for each mutation
     mutate(): Species {
         // 5% chance to mutate
-        if (Math.random() < 0.1) { // TODO change this back to 0.05
-            return weightedRandom([
-                [80, this.mutateBehaviour.bind(this)],
-                [20, this.mutateExistingPixels.bind(this)],
-                [5, this.mutateNumberOfPixels.bind(this)]
-            ])();
+        if (Math.random() < 0.2) { // TODO change this back to 0.05
+            let newSpecies: Species = this;
+            if (Math.random() < 0.8) {
+                newSpecies = Species.mutateBehaviour(newSpecies);
+            }
+            if (Math.random() < 0.4) {
+                newSpecies = Species.mutateExistingPixels(newSpecies);
+            }
+            if (Math.random() < 0.1) {
+                newSpecies = Species.mutateNumberOfPixels(newSpecies);
+            }
+            return newSpecies;
         } else {
             return this;
         }
     }
 
-    mutateBehaviour(): Species {
-        const newSpecies = new Species(this, [...this.pixels], this.behaviours);
+    static mutateBehaviour(originalSpecies: Species): Species {
+        const newSpecies = new Species(originalSpecies, [...originalSpecies.pixels], originalSpecies.behaviours);
         for (let colour of PIXEL_COLOURS) {
             for (let direction of Direction.DIRS) {
                 newSpecies.behaviours[colour][direction.name] = newSpecies.behaviours[colour][direction.name].mutate();
@@ -93,8 +100,9 @@ export class Species {
         return newSpecies;
     }
 
-    mutateExistingPixels(): Species {
-        const newSpecies = new Species(this, [...this.pixels], this.behaviours);
+    static mutateExistingPixels(originalSpecies: Species): Species {
+        const newSpecies = new Species(originalSpecies, [...originalSpecies.pixels], originalSpecies.behaviours);
+
         const index = getRandomInt(newSpecies.pixels.length - 1);
         const newPixel = newSpecies.pixels[index].mutate();
         newSpecies.pixels[index] = newPixel;
@@ -102,8 +110,8 @@ export class Species {
         return newSpecies;
     }
 
-    mutateNumberOfPixels(): Species {
+    static mutateNumberOfPixels(originalSpecies: Species): Species {
         // TODO implement this
-        return this;
+        return originalSpecies;
     }
 }

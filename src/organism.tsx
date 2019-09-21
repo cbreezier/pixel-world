@@ -69,7 +69,7 @@ export class Organism {
             "left": 10
         };
 
-        attraction[this.previousDirection.name] += 15;
+        attraction[this.previousDirection.name] += 50;
 
         for (const pixel of pixels) {
             for (const direction of Direction.DIRS) {
