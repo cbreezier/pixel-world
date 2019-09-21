@@ -7,9 +7,9 @@ export class Direction {
 
     public static DIRS = [Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT];
 
-    public readonly dx;
-    public readonly dy;
-    public readonly name;
+    public readonly dx: number;
+    public readonly dy: number;
+    public readonly name: string;
 
     constructor(dx: number, dy: number, name: string) {
         this.dx = dx;

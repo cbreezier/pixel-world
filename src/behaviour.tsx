@@ -1,3 +1,5 @@
+import {getRandomNumberBetween} from "./util";
+
 export class Behaviour {
     public readonly baseAttraction: number;
     public readonly distanceCoefficient: number;
@@ -9,5 +11,12 @@ export class Behaviour {
 
     attraction(colourIntensity: number, distance: number) {
         return (colourIntensity * this.baseAttraction) * (Math.pow(distance, this.distanceCoefficient));
+    }
+
+    mutate(): Behaviour {
+        return new Behaviour(
+            this.baseAttraction + getRandomNumberBetween(-0.5, 0.5),
+        this.distanceCoefficient + getRandomNumberBetween(-0.01, 0.01)
+        )
     }
 }

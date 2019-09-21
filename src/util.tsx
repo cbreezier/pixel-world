@@ -6,6 +6,10 @@ export function getRandomIntBetween(min: number, max: number) {
     return min + getRandomInt(max - min);
 }
 
+export function getRandomNumberBetween(min: number, max: number) {
+    return min + (Math.random() * (max - min));
+}
+
 export function weightedRandom<T>(inputs: [number, T][]): T {
     inputs = inputs.map(input => [Math.max(input[0], 0), input[1]]);
 

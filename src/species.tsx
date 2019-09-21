@@ -1,4 +1,4 @@
-import {Pixel, PixelColour, PositionedPixel} from "./pixel";
+import {Pixel, PIXEL_COLOURS, PixelColour, PositionedPixel} from "./pixel";
 import {Behaviour} from "./behaviour";
 import {Position} from "./position";
 import {Direction} from "./direction";
@@ -24,28 +24,27 @@ export class Species {
         this.parent = parent;
         this.pixels = pixels;
         if (behaviours) {
-            this.behaviours = behaviours;
+            this.behaviours = {
+                "red": {},
+                "green": {},
+                "blue": {}
+            };
+            for (let colour of PIXEL_COLOURS) {
+                for (let direction of Direction.DIRS) {
+                    this.behaviours[colour][direction.name] = behaviours[colour][direction.name];
+                }
+            }
         } else {
             this.behaviours = {
-                "red": {
-                    "up": new Behaviour(),
-                    "right": new Behaviour(),
-                    "down": new Behaviour(),
-                    "left": new Behaviour()
-                },
-                "green": {
-                    "up": new Behaviour(),
-                    "right": new Behaviour(),
-                    "down": new Behaviour(),
-                    "left": new Behaviour()
-                },
-                "blue": {
-                    "up": new Behaviour(),
-                    "right": new Behaviour(),
-                    "down": new Behaviour(),
-                    "left": new Behaviour()
-                }
+                "red": {},
+                "green": {},
+                "blue": {}
             };
+            for (let colour of PIXEL_COLOURS) {
+                for (let direction of Direction.DIRS) {
+                    this.behaviours[colour][direction.name] = new Behaviour();
+                }
+            }
         }
     }
 
@@ -72,7 +71,7 @@ export class Species {
 
     mutate(): Species {
         // 5% chance to mutate
-        if (Math.random() < 0.5) { // TODO change this back to 0.05
+        if (Math.random() < 0.1) { // TODO change this back to 0.05
             return weightedRandom([
                 [80, this.mutateBehaviour.bind(this)],
                 [20, this.mutateExistingPixels.bind(this)],
@@ -84,12 +83,17 @@ export class Species {
     }
 
     mutateBehaviour(): Species {
-        // TODO implement this
-        return this;
+        const newSpecies = new Species(this, [...this.pixels], this.behaviours);
+        for (let colour of PIXEL_COLOURS) {
+            for (let direction of Direction.DIRS) {
+                newSpecies.behaviours[colour][direction.name] = newSpecies.behaviours[colour][direction.name].mutate();
+            }
+        }
+
+        return newSpecies;
     }
 
     mutateExistingPixels(): Species {
-        // TODO check deep copying of behaviours
         const newSpecies = new Species(this, [...this.pixels], this.behaviours);
         const index = getRandomInt(newSpecies.pixels.length - 1);
         const newPixel = newSpecies.pixels[index].mutate();

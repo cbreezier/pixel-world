@@ -1,10 +1,11 @@
 import {LeoMap} from './src/leo-map';
 import {Position} from "./src/position";
-import {Pixel, PixelColour} from "./src/pixel";
+import {Pixel, PIXEL_COLOURS, PixelColour} from "./src/pixel";
 import {Species} from "./src/species";
 import {Organism} from "./src/organism";
 import {getRandomInt} from "./src/util";
 import {TopSpecies} from "./src/top-species";
+import {Direction} from "./src/direction";
 
 class AppState {
     private organisms: LeoMap<Position, Organism[]>;
@@ -206,11 +207,24 @@ function renderTopSpecie(speciesInfo: {species: Species, count: number}, order: 
     let result: string = '';
     result += `<div id="species${order}" style="border: 1px solid blue; margin: 5px;">`;
     result += `<canvas id="species-canvas${order}" width="100" height="100" style="border: 1px solid black; display: inline-block"></canvas>`;
+
     result += `<div style="display: inline-block; margin: 5px;">`;
     result += `Generation: ${speciesInfo.species.generation}<br>`;
     result += `Count: ${speciesInfo.count}<br>`;
     result += `Mass: ${speciesInfo.species.getMass()}<br>`;
     result += `</div>`;
+
+    result += `<div style="display: inline-block; margin: 5px; font-size: 8px;">`;
+    for (let colour of PIXEL_COLOURS) {
+        for (let direction of Direction.DIRS) {
+            const behaviour = speciesInfo.species.getBehaviour(colour, direction);
+            const baseAttraction = behaviour.baseAttraction;
+            const distanceCoefficient = behaviour.distanceCoefficient;
+            result += `${colour} ${direction.name}: ${baseAttraction.toFixed(2)} ${distanceCoefficient.toFixed(2)}<br>`;
+        }
+    }
+    result += `</div>`;
+
     result += `</div>`;
 
     return result;
