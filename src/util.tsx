@@ -15,13 +15,13 @@ export function weightedRandom<T>(inputs: [number, T][]): T {
 
     const total = inputs.reduce((acc, cur) => acc + cur[0], 0);
 
-    let randomInt = getRandomInt(total);
+    let randomNum = Math.random() * total;
     for (const input of inputs) {
-        if (randomInt <= input[0]) {
+        if (randomNum <= input[0]) {
             return input[1];
         }
 
-        randomInt -= input[0];
+        randomNum -= input[0];
     }
 
     console.error("Should never reach here");
