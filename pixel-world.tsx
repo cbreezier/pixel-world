@@ -137,8 +137,10 @@ class AppState {
         });
 
         // Periodically sow more food
-        if (this.time % 600 === 0) {
+        if (this.time % 400 === 0) {
+            this.addFood(500, "red");
             this.addFood(500, "green");
+            this.addFood(500, "blue");
         }
 
         this.time++;
