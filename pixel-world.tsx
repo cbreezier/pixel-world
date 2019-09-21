@@ -14,6 +14,7 @@ class AppState {
 
     public readonly width: number;
     public readonly height: number;
+    public readonly config: {tickIntervalMs: number};
 
     private readonly canvasId: string;
     private readonly canvas: HTMLCanvasElement;
@@ -28,6 +29,9 @@ class AppState {
 
         this.width = width;
         this.height = height;
+        this.config = {
+            tickIntervalMs: 50
+        };
 
         this.canvasId = canvasId;
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -234,8 +238,12 @@ appState.addOrganisms(10);
 appState.addFood(5000, "green");
 console.log(appState);
 
-setInterval(() => {
+function updateLoop() {
     appState.update();
     appState.render();
     renderTopSpecies('top-species', appState);
-}, 50);
+
+    setTimeout(updateLoop, appState.config.tickIntervalMs);
+}
+
+updateLoop();
