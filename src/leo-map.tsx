@@ -1,3 +1,5 @@
+import {Keyable} from "./keyable";
+
 export class LeoMap<K extends Keyable, V> implements Map<K, V> {
 
     private readonly valueMap: Map<string, V>;
@@ -84,16 +86,24 @@ export class LeoMap<K extends Keyable, V> implements Map<K, V> {
         return curValue;
     }
 
-    compute(key: K, ifPresent: (cur: V) => V, ifAbsent: () => V): V {
+    compute(key: K, ifPresent: (cur: V) => V | undefined, ifAbsent: () => V | undefined): V | undefined {
         const curValue = this.valueMap.get(key.toKey());
 
         if (curValue) {
             const newValue = ifPresent(curValue);
-            this.set(key, newValue);
+            if (newValue) {
+                this.set(key, newValue);
+            } else {
+                this.delete(key);
+            }
             return newValue;
         } else {
             const newValue = ifAbsent();
-            this.set(key, newValue);
+            if (newValue) {
+                this.set(key, newValue);
+            } else {
+                this.delete(key);
+            }
             return newValue;
         }
     }
@@ -104,8 +114,4 @@ export class LeoMap<K extends Keyable, V> implements Map<K, V> {
             this.set(key, callbackfn(value, key, this));
         });
     }
-}
-
-export interface Keyable {
-    toKey(): string;
 }

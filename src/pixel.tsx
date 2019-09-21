@@ -1,7 +1,8 @@
 import {Position} from "./position";
 import {enforceBetween, getRandomIntBetween, weightedRandom} from "./util";
+import {Keyable} from "./keyable";
 
-export class Pixel {
+export class Pixel implements Keyable {
     public readonly red: number;
     public readonly green: number;
     public readonly blue: number;
@@ -15,11 +16,15 @@ export class Pixel {
         this.alive = alive;
     }
 
-    getMass() {
+    toKey(): string {
+        return `{red:${this.red},green:${this.green},blue:${this.blue},alive:${this.alive}}`;
+    }
+
+    getMass(): number {
         return this.red + this.green + this.blue;
     }
 
-    getIntensity(colour: PixelColour) {
+    getIntensity(colour: PixelColour): number {
         switch (colour) {
             case "red":
                 return this.red;

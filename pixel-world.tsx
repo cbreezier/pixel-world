@@ -6,10 +6,11 @@ import {Organism} from "./src/organism";
 import {getRandomInt} from "./src/util";
 import {TopSpecies} from "./src/top-species";
 import {Direction} from "./src/direction";
+import {Victim} from "./src/victim";
 
 class AppState {
-    private organisms: LeoMap<Position, Organism[]>;
-    private foods: LeoMap<Position, Pixel>;
+    private organisms: Set<Organism>;
+    private victims: LeoMap<Position, LeoMap<Victim, number>>;
     private topSpecies: TopSpecies;
     private time: number;
 
@@ -23,8 +24,8 @@ class AppState {
     private readonly pixelSize: number;
 
     constructor(width: number, height: number, canvasId: string) {
-        this.organisms = new LeoMap();
-        this.foods = new LeoMap();
+        this.organisms = new Set();
+        this.victims = new LeoMap();
         this.topSpecies = new TopSpecies();
         this.time = 0;
 
@@ -99,15 +100,20 @@ class AppState {
 
         for (let i = 0; i < n; i++) {
             const position = randomPosition(this.width, this.height);
-            this.foods.set(
-                position,
+            const victim = new Victim(
                 new Pixel(red, green, blue, false)
             );
+            this.addVictim(position, victim);
         }
     }
 
     update() {
         [...this.organisms.values()].flat().forEach(organism => {
+            // Check that we haven't already been removed - damn you global state mutation!!!
+            if (!this.organisms.has(organism)) {
+                return;
+            }
+
             if (organism.getFood() < 0) {
                 // Dead, so turn it into food
                 this.removeOrganism(organism);
@@ -124,22 +130,32 @@ class AppState {
             this.addOrganism(organism);
 
             organism.getAbsoluteCellPositions().forEach(organismPosition => {
-                const food = this.foods.get(organismPosition.position);
-                if (!food) {
+                const victims = this.victims.get(organismPosition.position);
+                if (!victims) {
                     return;
                 }
 
-                const foodColour = food.getPrimaryColour();
-                const foodValue = food.getIntensity(foodColour);
-                const predatorColour = Pixel.getPredator(food.getPrimaryColour());
-                const predatorValue = organismPosition.pixel.getIntensity(predatorColour);
+                victims.forEach((victimNumber, victim) => {
+                    const victimColour = victim.pixel.getPrimaryColour();
+                    const victimValue = victim.pixel.getIntensity(victimColour);
+                    const predatorColour = Pixel.getPredator(victim.pixel.getPrimaryColour());
+                    const predatorValue = organismPosition.pixel.getIntensity(predatorColour);
 
-                if (predatorValue > foodValue) {
-                    // Eat it!
-                    organism.addFood(foodValue);
-                    this.foods.delete(organismPosition.position);
-                }
-                // TODO calculate pixels eating other pixels
+                    if (predatorValue > victimValue) {
+                        // Eat it!
+                        for (let i = 0; i < victimNumber; i++) {
+                            organism.addFood(victim.getFoodValue());
+
+                            // Remove the victim
+                            if (victim.organism) {
+                                console.log("Ate another organism!", organismPosition.position, victim.pixel.toKey());
+                                this.removeOrganism(victim.organism);
+                            } else {
+                                this.removeVictim(organismPosition.position, victim);
+                            }
+                        }
+                    }
+                });
             });
 
             // Potentially reproduce
@@ -157,10 +173,12 @@ class AppState {
             this.addFood(50, "blue");
         }
 
+        /* TODO fix this
         // Periodically decay food
         if (this.time % 100 === 0) {
             this.foods.computeForEach(pixel => pixel.decay(1))
         }
+        */
 
         this.time++;
     }
@@ -180,39 +198,89 @@ class AppState {
             this.canvasCtx.restore();
         });
 
-        this.foods.forEach((food, position) => {
+        this.victims.forEach((victimSet, position) => {
             // const position = wrapPosition(food.position, this.width, this.height);
 
             this.canvasCtx.save();
             this.canvasCtx.translate(position.x * this.pixelSize, position.y * this.pixelSize);
 
-            food.render(this.canvasCtx, this.pixelSize);
+            // Assume set not empty
+            victimSet.keys().next().value.pixel.render(this.canvasCtx, this.pixelSize);
 
             this.canvasCtx.restore();
         });
     }
 
     private removeOrganism(organism: Organism): void {
-        this.organisms.compute(
-            organism.getPosition(),
-            cur => cur.filter(o => o !== organism),
+        this.organisms.delete(organism);
+        organism.getAbsoluteCellPositions().forEach(cell => {
+            this.removeVictimByPixel(cell.position, cell.pixel);
+        });
+    }
+
+    private addOrganism(organism: Organism): void {
+        this.organisms.add(organism);
+        organism.getAbsoluteCellPositions().forEach(cell => {
+            this.addVictim(cell.position, new Victim(cell.pixel, organism));
+        });
+    }
+
+    private removeVictim(position: Position, victim: Victim) {
+        this.victims.compute(
+            position,
+            victimMap => {
+                victimMap.compute(
+                    victim,
+                    curNum => {
+                        curNum--;
+                        if (curNum === 0) {
+                            return undefined;
+                        } else {
+                            return curNum;
+                        }
+                    },
+                    () => {
+                        throw new Error('Trying to remove non-existent victim: ' + victim.pixel.toKey());
+                    }
+                );
+
+                if (victimMap.size == 0) {
+                    return undefined;
+                } else {
+                    return victimMap;
+                }
+            },
             () => {
-                throw new Error('Cannot find organism at its position');
+                throw new Error('Trying to remove non-existent victim: ' + victim.pixel.toKey());
             }
         );
     }
 
-    private addOrganism(organism: Organism): void {
-        this.organisms.compute(
-            organism.getPosition(),
-            cur => [...cur, organism],
-            () => [organism]
+    private removeVictimByPixel(position: Position, pixel: Pixel) {
+        this.removeVictim(position, new Victim(pixel));
+    }
+
+    private addVictim(position: Position, victim: Victim) {
+        this.victims.compute(
+            position,
+            victimMap => {
+                victimMap.compute(
+                    victim,
+                    curNum => curNum + 1,
+                    () => 1
+                );
+
+                return victimMap;
+            },
+            () => {
+                return new LeoMap<Victim, number>().set(victim, 1);
+            }
         );
     }
 
     private turnIntoFood(organism: Organism): void {
         organism.getAbsoluteCellPositions().forEach(pp => {
-            this.foods.set(pp.position, pp.pixel);
+            this.addVictim(pp.position, new Victim(pp.pixel));
         });
     }
 }
@@ -290,7 +358,7 @@ appState.addFood(1500, "blue");
 console.log(appState);
 
 function setTickIntervalMs() {
-    const intervalControlInputElement = document.getElementById('interval-control')! as HTMLInputElement
+    const intervalControlInputElement = document.getElementById('interval-control')! as HTMLInputElement;
     const newInterval = parseInt(intervalControlInputElement.value);
     console.log('newInterval', newInterval);
     appState.config.tickIntervalMs = newInterval;
