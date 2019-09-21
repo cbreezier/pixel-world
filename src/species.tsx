@@ -59,9 +59,20 @@ export class Species {
         return this.behaviours[pixelColour][direction.name];
     }
 
+    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number) {
+        this.pixels.forEach(pixel => {
+            canvasCtx.save();
+            canvasCtx.translate(pixel.position.x * pixelSize, pixel.position.y * pixelSize);
+
+            pixel.pixel.render(canvasCtx, pixelSize);
+
+            canvasCtx.restore();
+        });
+    }
+
     mutate(): Species {
         // 5% chance to mutate
-        if (Math.random() < 0.05) {
+        if (Math.random() < 0.5) { // TODO change this back to 0.05
             return weightedRandom([
                 [80, this.mutateBehaviour.bind(this)],
                 [20, this.mutateExistingPixels.bind(this)],

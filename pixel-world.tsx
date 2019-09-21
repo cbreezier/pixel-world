@@ -4,11 +4,12 @@ import {Pixel, PixelColour} from "./src/pixel";
 import {Species} from "./src/species";
 import {Organism} from "./src/organism";
 import {getRandomInt} from "./src/util";
+import {TopSpecies} from "./src/top-species";
 
 class AppState {
     private organisms: LeoMap<Position, Organism[]>;
     private foods: LeoMap<Position, Pixel>;
-    private species: {species: Species, count: number}[];
+    private topSpecies: TopSpecies;
     private time: number;
 
     public readonly width: number;
@@ -22,7 +23,7 @@ class AppState {
     constructor(width: number, height: number, canvasId: string) {
         this.organisms = new LeoMap();
         this.foods = new LeoMap();
-        this.species = [];
+        this.topSpecies = new TopSpecies();
         this.time = 0;
 
         this.width = width;
@@ -37,6 +38,10 @@ class AppState {
         );
     }
 
+    getTopSpecies(n: number) {
+        return this.topSpecies.getTopSpecies(n);
+    }
+
     // TODO testing method only
     addOrganisms(n: number) {
         const initialSpecies = Species.fromPixel(new Pixel(180, 0, 0, true));
@@ -49,12 +54,8 @@ class AppState {
             );
 
             this.addOrganism(newOrganism);
+            this.topSpecies.addSpecies(initialSpecies);
         }
-
-        this.species.push({
-            species: initialSpecies,
-            count: n
-        });
 
         console.log(`Added ${n} organisms`);
     }
@@ -87,7 +88,7 @@ class AppState {
                 // Dead, so turn it into food
                 this.removeOrganism(organism);
                 this.turnIntoFood(organism);
-                this.removeSpecies(organism.species);
+                this.topSpecies.removeSpecies(organism.species);
                 return;
             }
 
@@ -120,7 +121,7 @@ class AppState {
             const newOrganism = organism.tryReproduce();
             if (newOrganism) {
                 this.addOrganism(newOrganism);
-                this.addSpecies(newOrganism.species);
+                this.topSpecies.addSpecies(newOrganism.species);
             }
         });
 
@@ -182,29 +183,6 @@ class AppState {
             this.foods.set(pp.position, pp.pixel);
         });
     }
-
-    private addSpecies(species: Species): void {
-        const existingSpecies = this.species.find(cur => cur.species === species);
-        if (existingSpecies === undefined) {
-            this.species.push({
-                species: species,
-                count: 1
-            });
-        } else {
-            existingSpecies.count++;
-        }
-        this.species.sort((a, b) => b.count - a.count);
-    }
-
-    private removeSpecies(species: Species): void {
-        const existingSpecies = this.species.find(cur => cur.species === species);
-        if (existingSpecies === undefined) {
-            throw new Error('No species left to remove!');
-        } else {
-            existingSpecies.count--;
-        }
-        this.species.sort((a, b) => b.count - a.count);
-    }
 }
 
 function wrapPosition(position: Position, width: number, height: number) {
@@ -215,6 +193,42 @@ function randomPosition(width: number, height: number) {
     return new Position(getRandomInt(width), getRandomInt(height));
 }
 
+function renderTopSpecie(speciesInfo: {species: Species, count: number}, order: number): string {
+    let result: string = '';
+    result += `<div id="species${order}" style="border: 1px solid blue;">`;
+    result += `<canvas id="species-canvas${order}" width="100" height="100" style="border: 1px solid black; display: inline-block"></canvas>`;
+    result += `Generation: ${speciesInfo.species.generation}<br>`;
+    result += `Count: ${speciesInfo.count}<br>`;
+    result += `Mass: ${speciesInfo.species.getMass()}<br>`;
+    result += `</div>`;
+
+    return result;
+}
+
+function renderTopSpecies(divId: string, appState: AppState) {
+    const topSpeciesDiv = document.getElementById(divId)!;
+
+    topSpeciesDiv.innerHTML = '';
+    const topSpecies = appState.getTopSpecies(5);
+    for (let i = 0; i < topSpecies.length; i++) {
+        const speciesInfo = topSpecies[i];
+        topSpeciesDiv.innerHTML += renderTopSpecie(speciesInfo, i);
+    }
+    for (let i = 0; i < topSpecies.length; i++) {
+        const speciesInfo = topSpecies[i];
+
+        // TODO hardcoded 5x5, make it different
+        const canvas = document.getElementById(`species-canvas${i}`)! as HTMLCanvasElement;
+        const canvasCtx = canvas.getContext('2d')!;
+        const pixelSize = canvas.width / 5;
+
+        canvasCtx.save();
+        canvasCtx.translate(2 * pixelSize, 2 * pixelSize);
+        speciesInfo.species.render(canvasCtx, pixelSize);
+        canvasCtx.restore();
+    }
+}
+
 const appState = new AppState(400, 200, 'world');
 appState.addOrganisms(10);
 appState.addFood(5000, "green");
@@ -223,4 +237,5 @@ console.log(appState);
 setInterval(() => {
     appState.update();
     appState.render();
+    renderTopSpecies('top-species', appState);
 }, 50);

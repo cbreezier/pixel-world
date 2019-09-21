@@ -95,14 +95,7 @@ export class Organism {
     }
 
     render(canvasCtx: CanvasRenderingContext2D, pixelSize: number) {
-        this.species.pixels.forEach(pixel => {
-            canvasCtx.save();
-            canvasCtx.translate(pixel.position.x * pixelSize, pixel.position.y * pixelSize);
-
-            pixel.pixel.render(canvasCtx, pixelSize);
-
-            canvasCtx.restore();
-        });
+        this.species.render(canvasCtx, pixelSize);
 
         const fullness = this.getFullnessPercent().toFixed(0) + '%';
         canvasCtx.fillStyle = "white";
