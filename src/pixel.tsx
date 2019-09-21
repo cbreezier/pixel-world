@@ -58,6 +58,15 @@ export class Pixel {
         }
     }
 
+    decay(decayMultiplier: number): Pixel {
+        return new Pixel(
+            Math.floor(this.red * decayMultiplier),
+            Math.floor(this.green * decayMultiplier),
+            Math.floor(this.blue * decayMultiplier),
+            this.alive
+        );
+    }
+
     mutate(): Pixel {
         return weightedRandom([
             [80, this.mutateIntensity.bind(this)],

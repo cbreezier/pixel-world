@@ -54,8 +54,19 @@ class AppState {
     }
 
     // TODO testing method only
-    addOrganisms(n: number) {
-        const initialSpecies = Species.fromPixel(new Pixel(100, 0, 0, true));
+    addOrganisms(n: number, colour: PixelColour) {
+        let red = 0;
+        let green = 0;
+        let blue = 0;
+
+        if (colour === "red") {
+            red = 100;
+        } else if (colour === "green") {
+            green = 100;
+        } else if (colour === "blue") {
+            blue = 100;
+        }
+        const initialSpecies = Species.fromPixel(new Pixel(red, green, blue, true));
 
         for (let i = 0; i < n; i++) {
             const newOrganism = new Organism(
@@ -138,10 +149,15 @@ class AppState {
         });
 
         // Periodically sow more food
-        if (this.time % 400 === 0) {
-            this.addFood(500, "red");
-            this.addFood(500, "green");
-            this.addFood(500, "blue");
+        if (this.time % 40 === 0) {
+            this.addFood(50, "red");
+            this.addFood(50, "green");
+            this.addFood(50, "blue");
+        }
+
+        // Periodically decay food
+        if (this.time % 100 === 0) {
+            this.foods.computeForEach(pixel => pixel.decay(1))
         }
 
         this.time++;
@@ -263,7 +279,9 @@ function renderTopSpecies(divId: string, appState: AppState) {
 }
 
 const appState = new AppState(400, 200, 'world');
-appState.addOrganisms(10);
+appState.addOrganisms(10, "red");
+appState.addOrganisms(10, "green");
+appState.addOrganisms(10, "blue");
 appState.addFood(1500, "red");
 appState.addFood(1500, "green");
 appState.addFood(1500, "blue");

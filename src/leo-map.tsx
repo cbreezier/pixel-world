@@ -97,6 +97,13 @@ export class LeoMap<K extends Keyable, V> implements Map<K, V> {
             return newValue;
         }
     }
+
+    computeForEach(callbackfn: (value: V, key: K, map: Map<K, V>) => V, thisArg?: any): void {
+        this.valueMap.forEach((value, keyString, map) => {
+            const key = this.keyMap.get(keyString)!;
+            this.set(key, callbackfn(value, key, this));
+        });
+    }
 }
 
 export interface Keyable {
