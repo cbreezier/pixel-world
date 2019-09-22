@@ -150,6 +150,7 @@ class AppState {
                             if (victim.organism) {
                                 console.log("Ate another organism!", organismPosition.position, victim.pixel.toKey());
                                 this.removeOrganism(victim.organism);
+                                this.topSpecies.removeSpecies(organism.species);
                             } else {
                                 this.victimMap.removeVictim(organismPosition.position, victim);
                             }
