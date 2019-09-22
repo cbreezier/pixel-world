@@ -3,10 +3,13 @@ import {Behaviour} from "./behaviour";
 import {Position} from "./position";
 import {Direction} from "./direction";
 import {LeoMap} from "./leo-map";
+import {Uuid} from "./uuid";
+import {Keyable} from "./keyable";
 
-export class Species {
+export class Species implements Keyable {
 
     public readonly generation: number;
+    public readonly id: Uuid;
     public readonly parent: Species | null;
     public readonly pixelMap: LeoMap<Position, Pixel>;
     public readonly behaviours: Record<PixelColour, Record<string, Behaviour>>;
@@ -21,6 +24,7 @@ export class Species {
         } else {
             this.generation = parent.generation + 1;
         }
+        this.id = new Uuid();
         this.parent = parent;
 
         this.pixelMap = new LeoMap(pixelMap);
@@ -48,6 +52,10 @@ export class Species {
                 }
             }
         }
+    }
+
+    toKey(): string {
+        return this.id.stringValue;
     }
 
     getMass(): number {

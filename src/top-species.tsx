@@ -1,10 +1,11 @@
 import {Species} from "./species";
+import {LeoMap} from "./leo-map";
 
 export class TopSpecies {
-    private readonly speciesInfoMap: Map<Species, SpeciesInfo>;
+    private readonly speciesInfoMap: LeoMap<Species, SpeciesInfo>;
 
     constructor() {
-        this.speciesInfoMap = new Map();
+        this.speciesInfoMap = new LeoMap();
     }
 
     getTopSpecies(n: number) {
@@ -13,7 +14,7 @@ export class TopSpecies {
 
     addSpecies(species: Species) {
         const speciesInfo = this.speciesInfoMap.get(species);
-        if (speciesInfo) {
+        if (speciesInfo !== undefined) {
             speciesInfo.count++;
         } else {
             this.speciesInfoMap.set(species, new SpeciesInfo(species, 1));
@@ -22,7 +23,7 @@ export class TopSpecies {
 
     removeSpecies(species: Species) {
         const speciesInfo = this.speciesInfoMap.get(species);
-        if (speciesInfo) {
+        if (speciesInfo !== undefined) {
             speciesInfo.count--;
             if (speciesInfo.count === 0) {
                 this.speciesInfoMap.delete(species);

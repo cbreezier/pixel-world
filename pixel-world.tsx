@@ -82,7 +82,7 @@ class AppState {
             this.topSpecies.addSpecies(initialSpecies);
         }
 
-        console.log(`Added ${n} organisms`);
+        console.log(`Added ${n} ${colour} organisms`);
     }
 
     addFood(n: number, colour: PixelColour) {
@@ -111,10 +111,11 @@ class AppState {
         [...this.organisms.values()].forEach(organism => {
             // Check that we haven't already been removed - damn you global state mutation!!!
             if (!this.organisms.has(organism)) {
+                console.log('global state mutation sucks');
                 return;
             }
 
-            if (organism.getFood() < 0) {
+            if (organism.getFood() <= 0) {
                 // Dead, so turn it into food
                 this.removeOrganism(organism);
                 this.victimMap.turnIntoFood(organism);
@@ -147,9 +148,11 @@ class AppState {
                             organism.addFood(victim.getFoodValue());
 
                             // Remove the victim
-                            if (victim.organism) {
-                                this.removeOrganism(victim.organism);
-                                this.topSpecies.removeSpecies(organism.species);
+                            if (victim.organism !== undefined) {
+                                if (this.organisms.has(victim.organism)) {
+                                    this.removeOrganism(victim.organism);
+                                    this.topSpecies.removeSpecies(victim.organism.species);
+                                }
                             } else {
                                 this.victimMap.removeVictim(organismPosition, victim);
                             }
@@ -295,7 +298,6 @@ console.log(appState);
 function setTickIntervalMs() {
     const intervalControlInputElement = document.getElementById('interval-control')! as HTMLInputElement;
     const newInterval = parseInt(intervalControlInputElement.value);
-    console.log('newInterval', newInterval);
     appState.config.tickIntervalMs = newInterval;
 }
 

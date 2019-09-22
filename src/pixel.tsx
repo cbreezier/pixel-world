@@ -63,6 +63,15 @@ export class Pixel implements Keyable {
         }
     }
 
+    toFood(decayMultiplier: number): Pixel {
+        return new Pixel(
+            this.red,
+            this.green,
+            this.blue,
+            false
+        ).decay(decayMultiplier);
+    }
+
     decay(decayMultiplier: number): Pixel {
         return new Pixel(
             Math.floor(this.red * decayMultiplier),
