@@ -321,7 +321,14 @@ document.getElementById ("toggle-render-world")!.addEventListener("click", toggl
 document.getElementById ("toggle-render-top-species")!.addEventListener("click", toggleRenderTopSpecies, false);
 document.getElementById ("interval-control")!.addEventListener("change", setTickIntervalMs, false);
 
+let lastUpdateTime: number = Date.now();
+
 function updateLoop() {
+    const delayMillis = Date.now() - lastUpdateTime;
+    const ticksPerSecond: number = Math.floor(1000 / delayMillis);
+    document.getElementById("ticksPerSecond")!.innerText = ticksPerSecond.toString();
+    lastUpdateTime = Date.now();
+
     if (!appState.config.paused) {
         appState.update();
         if (appState.config.renderWorld) {
@@ -333,7 +340,9 @@ function updateLoop() {
         document.getElementById('time')!.innerText = appState.getTime().toLocaleString();
     }
 
-    setTimeout(updateLoop, appState.config.tickIntervalMs);
+    // If it's paused, don't busy spin too much
+    const nextSchedule = appState.config.paused ? 500 : appState.config.tickIntervalMs;
+    setTimeout(updateLoop, nextSchedule);
 }
 
 updateLoop();
