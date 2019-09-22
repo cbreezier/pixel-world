@@ -74,13 +74,6 @@ export class Pixel implements Keyable {
 
     mutate(): Pixel {
         return weightedRandom([
-            [80, this.mutateIntensity.bind(this)],
-            [20, this.mutateSwapColours.bind(this)]
-        ])();
-    }
-
-    private mutateIntensity(): Pixel {
-        return weightedRandom([
             [1, () => new Pixel(this.mutateIntensityNumber(this.red, 20), this.green, this.blue, this.alive)],
             [1, () => new Pixel(this.red, this.mutateIntensityNumber(this.green, 20), this.blue, this.alive)],
             [1, () => new Pixel(this.red, this.green, this.mutateIntensityNumber(this.blue, 20), this.alive)]
@@ -92,13 +85,6 @@ export class Pixel implements Keyable {
             original + getRandomIntBetween(-fluctuation, fluctuation),
             1, 255
         );
-    }
-
-    private mutateSwapColours(): Pixel {
-        const curColours = [this.red, this.green, this.blue];
-        shuffleArray(curColours);
-
-        return new Pixel(curColours[0], curColours[1], curColours[2], this.alive);
     }
 }
 
