@@ -81,7 +81,7 @@ export class VictimMap {
 
     turnIntoFood(organism: Organism): void {
         organism.getAbsoluteCellPositions().forEach(pp => {
-            this.addVictim(pp.position, new Victim(pp.pixel));
+            this.addVictim(pp.position, new Victim(pp.pixel.decay(0.5)));
         });
     }
 }
