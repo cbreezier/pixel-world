@@ -83,16 +83,21 @@ export class Pixel implements Keyable {
 
     mutate(): Pixel {
         return weightedRandom([
-            [1, () => new Pixel(this.mutateIntensityNumber(this.red, 20), this.green, this.blue, this.alive)],
-            [1, () => new Pixel(this.red, this.mutateIntensityNumber(this.green, 20), this.blue, this.alive)],
-            [1, () => new Pixel(this.red, this.green, this.mutateIntensityNumber(this.blue, 20), this.alive)]
+            [1, () => new Pixel(this.mutateIntensityNumber(this.red, 10, 20), this.green, this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.mutateIntensityNumber(this.green, 10, 20), this.blue, this.alive)],
+            [1, () => new Pixel(this.red, this.green, this.mutateIntensityNumber(this.blue, 10, 20), this.alive)]
         ])();
     }
 
-    private mutateIntensityNumber(original: number, fluctuation: number) {
+    private mutateIntensityNumber(original: number, fluctuationMin: number, fluctuationMax: number) {
+        let fluctuation = getRandomIntBetween(fluctuationMin, fluctuationMax);
+        if (Math.random() < 0.5) {
+            fluctuation = - fluctuation;
+        }
+
         return enforceBetween(
-            original + getRandomIntBetween(-fluctuation, fluctuation),
-            1, 255
+            original + fluctuation,
+            0, 255
         );
     }
 }
