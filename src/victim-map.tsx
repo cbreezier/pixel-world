@@ -68,20 +68,20 @@ export class VictimMap {
     }
 
     removeOrganism(organism: Organism): void {
-        organism.getAbsoluteCellPositions().forEach(cell => {
-            this.removeVictim(cell.position, new Victim(cell.pixel, organism));
+        organism.getAbsoluteCellPositions().forEach((pixel, position) => {
+            this.removeVictim(position, new Victim(pixel, organism));
         });
     }
 
     addOrganism(organism: Organism): void {
-        organism.getAbsoluteCellPositions().forEach(cell => {
-            this.addVictim(cell.position, new Victim(cell.pixel, organism));
+        organism.getAbsoluteCellPositions().forEach((pixel, position) => {
+            this.addVictim(position, new Victim(pixel, organism));
         });
     }
 
     turnIntoFood(organism: Organism): void {
-        organism.getAbsoluteCellPositions().forEach(pp => {
-            this.addVictim(pp.position, new Victim(pp.pixel.decay(0.5)));
+        organism.getAbsoluteCellPositions().forEach((pixel, position) => {
+            this.addVictim(position, new Victim(pixel.decay(0.5)));
         });
     }
 }

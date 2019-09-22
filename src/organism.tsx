@@ -1,10 +1,11 @@
 import {Species} from "./species";
 import {Direction} from "./direction";
-import {PIXEL_COLOURS, PositionedPixel} from "./pixel";
+import {Pixel, PIXEL_COLOURS, PositionedPixel} from "./pixel";
 import {getRandomInt, weightedRandom} from "./util";
 import {Position} from "./position";
 import {Uuid} from "./uuid";
 import {Keyable} from "./keyable";
+import {LeoMap} from "./leo-map";
 
 export class Organism implements Keyable {
     public readonly species: Species;
@@ -39,12 +40,13 @@ export class Organism implements Keyable {
         return this.food;
     }
 
-    getAbsoluteCellPositions(): PositionedPixel[] {
-        return this.species.pixels
-            .map(positionedPixel => new PositionedPixel(
-                positionedPixel.position.absoluteFrom(this.position),
-                positionedPixel.pixel
-            ));
+    getAbsoluteCellPositions(): LeoMap<Position, Pixel> {
+        return this.species.pixelMap
+            .map((pixel, position) => [
+                    position.absoluteFrom(this.position),
+                    pixel
+                ]
+            );
     }
 
     getFullnessPercent(): number {

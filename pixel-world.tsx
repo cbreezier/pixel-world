@@ -108,7 +108,7 @@ class AppState {
     }
 
     update() {
-        [...this.organisms.values()].flat().forEach(organism => {
+        [...this.organisms.values()].forEach(organism => {
             // Check that we haven't already been removed - damn you global state mutation!!!
             if (!this.organisms.has(organism)) {
                 return;
@@ -129,8 +129,8 @@ class AppState {
             organism.setPosition(wrapPosition(organism.getPosition(), this.width, this.height));
             this.addOrganism(organism);
 
-            organism.getAbsoluteCellPositions().forEach(organismPosition => {
-                const victims = this.victimMap.getVictim(organismPosition.position);
+            organism.getAbsoluteCellPositions().forEach((organismPixel, organismPosition) => {
+                const victims = this.victimMap.getVictim(organismPosition);
                 if (!victims) {
                     return;
                 }
@@ -139,7 +139,7 @@ class AppState {
                     const victimColour = victim.pixel.getPrimaryColour();
                     const victimValue = victim.pixel.getIntensity(victimColour);
                     const predatorColour = Pixel.getPredator(victim.pixel.getPrimaryColour());
-                    const predatorValue = organismPosition.pixel.getIntensity(predatorColour);
+                    const predatorValue = organismPixel.getIntensity(predatorColour);
 
                     if (predatorValue > victimValue) {
                         // Eat it!
@@ -151,7 +151,7 @@ class AppState {
                                 this.removeOrganism(victim.organism);
                                 this.topSpecies.removeSpecies(organism.species);
                             } else {
-                                this.victimMap.removeVictim(organismPosition.position, victim);
+                                this.victimMap.removeVictim(organismPosition, victim);
                             }
                         }
                     }

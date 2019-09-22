@@ -5,9 +5,15 @@ export class LeoMap<K extends Keyable, V> implements Map<K, V> {
     private readonly valueMap: Map<string, V>;
     private readonly keyMap: Map<string, K>;
 
-    constructor() {
+    constructor(existingMap?: LeoMap<K, V>) {
         this.valueMap = new Map();
         this.keyMap = new Map();
+
+        if (existingMap !== undefined) {
+            existingMap.forEach((v, k) => {
+                this.set(k, v);
+            });
+        }
     }
 
     clear(): void {
@@ -108,10 +114,19 @@ export class LeoMap<K extends Keyable, V> implements Map<K, V> {
         }
     }
 
-    computeForEach(callbackfn: (value: V, key: K, map: Map<K, V>) => V, thisArg?: any): void {
+    computeForEach(computefn: (value: V, key: K, map: Map<K, V>) => V): void {
         this.valueMap.forEach((value, keyString, map) => {
             const key = this.keyMap.get(keyString)!;
-            this.set(key, callbackfn(value, key, this));
+            this.set(key, computefn(value, key, this));
         });
+    }
+
+    map(mapperfn: (value: V, key: K) => [K, V]): LeoMap<K, V> {
+        const newMap = new LeoMap<K, V>();
+        this.forEach((v, k) => {
+            const mapped = mapperfn(v, k);
+            newMap.set(mapped[0], mapped[1]);
+        });
+        return newMap;
     }
 }

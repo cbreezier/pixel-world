@@ -1,28 +1,30 @@
-import {Pixel, PIXEL_COLOURS, PixelColour, PositionedPixel} from "./pixel";
+import {Pixel, PIXEL_COLOURS, PixelColour} from "./pixel";
 import {Behaviour} from "./behaviour";
 import {Position} from "./position";
 import {Direction} from "./direction";
-import {getRandomInt, weightedRandom} from "./util";
+import {LeoMap} from "./leo-map";
 
 export class Species {
 
     public readonly generation: number;
     public readonly parent: Species | null;
-    public readonly pixels: PositionedPixel[];
+    public readonly pixelMap: LeoMap<Position, Pixel>;
     public readonly behaviours: Record<PixelColour, Record<string, Behaviour>>;
 
     static fromPixel(initialPixel: Pixel) {
-        return new Species(null, [new PositionedPixel(new Position(0, 0), initialPixel)]);
+        return new Species(null, new LeoMap<Position, Pixel>().set(new Position(0, 0), initialPixel));
     }
 
-    constructor(parent: Species | null, pixels: PositionedPixel[], behaviours?) {
+    constructor(parent: Species | null, pixelMap: LeoMap<Position, Pixel>, behaviours?) {
         if (parent === null) {
             this.generation = 0;
         } else {
             this.generation = parent.generation + 1;
         }
         this.parent = parent;
-        this.pixels = pixels;
+
+        this.pixelMap = new LeoMap(pixelMap);
+
         if (behaviours) {
             this.behaviours = {
                 "red": {},
@@ -49,8 +51,8 @@ export class Species {
     }
 
     getMass(): number {
-        return this.pixels
-            .map(p => p.pixel.getMass())
+        return Array.from(this.pixelMap.values())
+            .map(p => p.getMass())
             .reduce((acc, cur) => acc + cur, 0);
     }
 
@@ -58,12 +60,36 @@ export class Species {
         return this.behaviours[pixelColour][direction.name];
     }
 
-    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number, textRgb: boolean = false) {
-        this.pixels.forEach(pixel => {
-            canvasCtx.save();
-            canvasCtx.translate(pixel.position.x * pixelSize, pixel.position.y * pixelSize);
+    getVisionPositions(visionDistance: number): Position[] {
+        let minX: number = 0;
+        let minY: number = 0;
+        let maxX: number = 0;
+        let maxY: number = 0;
+        this.pixelMap.forEach((pixel, position) => {
+            minX = Math.min(minX, position.x);
+            minY = Math.min(minY, position.y);
+            maxX = Math.max(maxX, position.x);
+            maxY = Math.max(maxY, position.y);
+        });
 
-            pixel.pixel.render(canvasCtx, pixelSize, textRgb);
+        const positions: Position[] = [];
+        for (let x = minX - visionDistance; x <= maxX + visionDistance; x++) {
+            for (let y = minY - visionDistance; y <= maxY + visionDistance; y++) {
+                const position = new Position(x, y);
+                if (!this.pixelMap.has(position)) {
+                    positions.push(position);
+                }
+            }
+        }
+        return positions;
+    }
+
+    render(canvasCtx: CanvasRenderingContext2D, pixelSize: number, textRgb: boolean = false) {
+        this.pixelMap.forEach((pixel, position) => {
+            canvasCtx.save();
+            canvasCtx.translate(position.x * pixelSize, position.y * pixelSize);
+
+            pixel.render(canvasCtx, pixelSize, textRgb);
 
             canvasCtx.restore();
         });
@@ -90,7 +116,7 @@ export class Species {
     }
 
     static mutateBehaviour(originalSpecies: Species): Species {
-        const newSpecies = new Species(originalSpecies, [...originalSpecies.pixels], originalSpecies.behaviours);
+        const newSpecies = new Species(originalSpecies, originalSpecies.pixelMap, originalSpecies.behaviours);
         for (let colour of PIXEL_COLOURS) {
             for (let direction of Direction.DIRS) {
                 newSpecies.behaviours[colour][direction.name] = newSpecies.behaviours[colour][direction.name].mutate();
@@ -101,11 +127,9 @@ export class Species {
     }
 
     static mutateExistingPixels(originalSpecies: Species): Species {
-        const newSpecies = new Species(originalSpecies, [...originalSpecies.pixels], originalSpecies.behaviours);
+        const newSpecies = new Species(originalSpecies, originalSpecies.pixelMap, originalSpecies.behaviours);
 
-        const index = getRandomInt(newSpecies.pixels.length - 1);
-        const newPixel = newSpecies.pixels[index].mutate();
-        newSpecies.pixels[index] = newPixel;
+        newSpecies.pixelMap.computeForEach(pixel => pixel.mutate());
 
         return newSpecies;
     }
