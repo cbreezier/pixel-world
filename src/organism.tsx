@@ -1,11 +1,12 @@
 import {Species} from "./species";
 import {Direction} from "./direction";
-import {Pixel, PIXEL_COLOURS, PositionedPixel} from "./pixel";
-import {getRandomInt, weightedRandom} from "./util";
+import {Pixel, PIXEL_COLOURS} from "./pixel";
+import {weightedRandom} from "./util";
 import {Position} from "./position";
 import {Uuid} from "./uuid";
 import {Keyable} from "./keyable";
 import {LeoMap} from "./leo-map";
+import {Victim} from "./victim";
 
 export class Organism implements Keyable {
     public readonly species: Species;
@@ -49,6 +50,10 @@ export class Organism implements Keyable {
             );
     }
 
+    getVisionPositions(visionDistance: number): Position[] {
+        return this.species.getVisionPositions(visionDistance, this.position);
+    }
+
     getFullnessPercent(): number {
         return 100 * (this.food / this.species.getMass());
     }
@@ -72,7 +77,7 @@ export class Organism implements Keyable {
     }
 
     // Pixels here are relatively positioned
-    move(pixels: PositionedPixel[]): void {
+    move(victims: Map<Position, Victim[]>): void {
         let attraction = {
             "up": 1,
             "right": 1,
@@ -82,19 +87,21 @@ export class Organism implements Keyable {
 
         attraction[this.previousDirection.name] += 5;
 
-        for (const pixel of pixels) {
+        victims.forEach((victimList, position) => {
             for (const direction of Direction.DIRS) {
-                if (pixel.position.isPositioned(direction, this.position)) {
+                if (position.isPositioned(direction, this.position)) {
                     for (const colour of PIXEL_COLOURS) {
                         const behaviour = this.species.getBehaviour(colour, direction);
-                        attraction[direction.name] += behaviour.attraction(
-                            pixel.pixel.getIntensity(colour),
-                            pixel.position.distanceFrom(this.position, direction)
-                        );
+                        for (const victim of victimList) {
+                            attraction[direction.name] += behaviour.attraction(
+                                victim.pixel.getIntensity(colour),
+                                position.distanceFrom(this.position, direction)
+                            );
+                        }
                     }
                 }
             }
-        }
+        });
 
         const finalDirection = weightedRandom([
             [attraction["up"], Direction.UP],

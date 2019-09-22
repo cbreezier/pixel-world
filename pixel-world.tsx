@@ -7,6 +7,7 @@ import {TopSpecies} from "./src/top-species";
 import {Direction} from "./src/direction";
 import {Victim} from "./src/victim";
 import {VictimMap} from "./src/victim-map";
+import {LeoMap} from "./src/leo-map";
 
 class AppState {
     private organisms: Set<Organism>;
@@ -123,10 +124,25 @@ class AppState {
                 return;
             }
 
-            // TODO give organisms visibility of their surroundings
-            // TODO make this less error prone
+            // TODO this is far too complicated and inefficient
             this.removeOrganism(organism);
-            organism.move([]);
+            const victimMapList: LeoMap<Position, Victim[]> = new LeoMap();
+            organism.getVisionPositions(5)
+                .forEach(position => {
+                    const victimMap = this.victimMap.getVictim(position);
+                    if (victimMap === undefined) {
+                        return;
+                    }
+
+                    const victims: Victim[] = [];
+                    victimMap.forEach((num, victim) => {
+                        for (let i = 0; i < num; i++) {
+                            victims.push(victim);
+                        }
+                    });
+                    victimMapList.set(position, victims);
+                });
+            organism.move(victimMapList);
             organism.setPosition(wrapPosition(organism.getPosition(), this.width, this.height));
             this.addOrganism(organism);
 

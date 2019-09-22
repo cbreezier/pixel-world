@@ -10,7 +10,7 @@ export class VictimMap {
         this.victims = new LeoMap();
     }
 
-    getVictim(position: Position) {
+    getVictim(position: Position): LeoMap<Victim, number> | undefined {
         return this.victims.get(position);
     }
 

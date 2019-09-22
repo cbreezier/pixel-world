@@ -68,7 +68,7 @@ export class Species implements Keyable {
         return this.behaviours[pixelColour][direction.name];
     }
 
-    getVisionPositions(visionDistance: number): Position[] {
+    getVisionPositions(visionDistance: number, absoluteFrom: Position): Position[] {
         let minX: number = 0;
         let minY: number = 0;
         let maxX: number = 0;
@@ -85,7 +85,7 @@ export class Species implements Keyable {
             for (let y = minY - visionDistance; y <= maxY + visionDistance; y++) {
                 const position = new Position(x, y);
                 if (!this.pixelMap.has(position)) {
-                    positions.push(position);
+                    positions.push(position.absoluteFrom(absoluteFrom));
                 }
             }
         }
