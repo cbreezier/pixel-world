@@ -167,10 +167,10 @@ class AppState {
         });
 
         // Periodically sow more food
-        if (this.time % 40 === 0) {
-            this.addFood(50, "red");
-            this.addFood(50, "green");
-            this.addFood(50, "blue");
+        if (this.time % 50 === 0) {
+            this.addFood(100, "red");
+            this.addFood(100, "green");
+            this.addFood(100, "blue");
         }
 
         /* TODO fix this
@@ -287,9 +287,9 @@ const appState = new AppState(400, 200, 'world');
 appState.addOrganisms(10, "red");
 appState.addOrganisms(10, "green");
 appState.addOrganisms(10, "blue");
-appState.addFood(1500, "red");
-appState.addFood(1500, "green");
-appState.addFood(1500, "blue");
+appState.addFood(2500, "red");
+appState.addFood(2500, "green");
+appState.addFood(2500, "blue");
 console.log(appState);
 
 function setTickIntervalMs() {
